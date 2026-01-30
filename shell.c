@@ -5,7 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
-
+#include <fcntl.h>
 #include "shell-utils.h"
 
 #define INPUT_BUFFER_SIZE 2048
@@ -73,8 +73,17 @@ int main() {
                     } else {
                         if(strcmp(tokens[0],"exit")==0){ exit(0);}
                         if (fork() == 0) {
-
-
+                            char* red=trouve_redirection(tokens,"<");
+                            if(red != NULL){
+                                int fd = open(red, O_RDONLY);
+                                dup2(fd,0);
+                            } else{
+                                red=trouve_redirection(tokens,">");
+                                if(red != NULL){
+                                    int fd = open(red, O_CREAT,0);
+                                    dup2(fd,1);
+                                }
+                            }
                             /* On exécute la commande donné par l'utilisateur.
                              * Son nom est dans le premier token (le premier mot tapé)
                              * ses arguments (éventuels) seront les tokens suivants */
