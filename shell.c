@@ -72,16 +72,35 @@ int main() {
                         fprintf(stderr, "No tokens found: exiting\n");
                     } else {
                         if(strcmp(tokens[0],"exit")==0){ exit(0);}
+                        char **sec[MAX_TOKENS + 1];
+                        if ((sec = trouve_tube(tokens,"|"))!=NULL){
+
+                        }
+                        int df[2];
+                        if (pipe (pipe) <0) {
+                            perror("pipe");
+                        }
                         if (fork() == 0) {
                             char* red=trouve_redirection(tokens,"<");
                             if(red != NULL){
                                 int fd = open(red, O_RDONLY);
+                                if (fd == -1) {
+                                    perror("open");
+                                    exit(1);
+                                }
                                 dup2(fd,0);
+                                close(fd);
                             } else{
                                 red=trouve_redirection(tokens,">");
                                 if(red != NULL){
-                                    int fd = open(red, O_CREAT,0);
+                                    int fd = open(red, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                                    if (fd == -1) {
+                                        perror("open");
+                                        fprintf(stderr, "%s: Permission denied\n", red);
+                                        exit(1);
+                                    }
                                     dup2(fd,1);
+                                    close(fd);
                                 }
                             }
                             /* On exécute la commande donné par l'utilisateur.
@@ -92,6 +111,7 @@ int main() {
                             /* On ne devrait jamais arriver là */
 
                             perror("execvp");
+                            fprintf(stderr, "%s: command not found\n", tokens[0]);
                             exit(1);
                         } else{
                             wait(NULL);

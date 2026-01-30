@@ -21,4 +21,4 @@ include $(DEPENDS)
 
 .PHONY: clean
 clean:
-	$(RM) $(PROGS) *.o .*.d
+	$(RM) $(PROGS) *.o .*.d *.txt
