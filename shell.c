@@ -10,7 +10,49 @@
 
 #define INPUT_BUFFER_SIZE 2048
 #define MAX_TOKENS 256
+void handlectrc(int sig ){
+    printf("interuption clavier");
+    exit(0);
+}
+/**
+ *
+ *
+ * @param tokens liste de mot correspondant a la commande
+ */
+void lancementCommande(char** tokens){
+    char* red=trouve_redirection(tokens,"<");
+    if(red != NULL){
+        int fd = open(red, O_RDONLY);
+        if (fd == -1) {
+            perror("open");
+            exit(1);
+        }
+        dup2(fd,0);
+        close(fd);
+    } else{
+        red=trouve_redirection(tokens,">");
+        if(red != NULL){
+            int fd = open(red, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            if (fd == -1) {
+                perror("open");
+                fprintf(stderr, "%s: Permission denied\n", red);
+                exit(1);
+            }
+            dup2(fd,1);
+            close(fd);
+        }
+    }
+    /* On exécute la commande donné par l'utilisateur.
+     * Son nom est dans le premier token (le premier mot tapé)
+     * ses arguments (éventuels) seront les tokens suivants */
+    execvp(tokens[0], tokens);
 
+    /* On ne devrait jamais arriver là */
+
+    perror("execvp");
+    fprintf(stderr, "%s: command not found\n", tokens[0]);
+    exit(1);
+}
 int main() {
     /* Une variable pour sotcker les caractères tapés au clavier */
     char line[INPUT_BUFFER_SIZE + 1];
@@ -72,47 +114,29 @@ int main() {
                         fprintf(stderr, "No tokens found: exiting\n");
                     } else {
                         if(strcmp(tokens[0],"exit")==0){ exit(0);}
-                        char **sec[MAX_TOKENS + 1];
-                        if ((sec = trouve_tube(tokens,"|"))!=NULL){
 
-                        }
-                        int df[2];
-                        if (pipe (pipe) <0) {
-                            perror("pipe");
-                        }
                         if (fork() == 0) {
-                            char* red=trouve_redirection(tokens,"<");
-                            if(red != NULL){
-                                int fd = open(red, O_RDONLY);
-                                if (fd == -1) {
-                                    perror("open");
+                            signal(SIGINT, handlectrc);
+                            char **sec;
+                            if ((sec = trouve_tube(tokens,"|"))!=NULL){
+                                int fd[2];
+                                if(pipe(fd)==-1){
+                                    perror("pipe");
                                     exit(1);
                                 }
-                                dup2(fd,0);
-                                close(fd);
-                            } else{
-                                red=trouve_redirection(tokens,">");
-                                if(red != NULL){
-                                    int fd = open(red, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-                                    if (fd == -1) {
-                                        perror("open");
-                                        fprintf(stderr, "%s: Permission denied\n", red);
-                                        exit(1);
-                                    }
-                                    dup2(fd,1);
-                                    close(fd);
+                                if(fork()==0){
+                                    close(fd[0]);
+                                    dup2(fd[1],1);
+                                    lancementCommande(tokens);
+                                }else{
+                                    wait(NULL);
+                                    close(fd[1]);
+                                    dup2(fd[0],0);
+                                    lancementCommande(sec);
                                 }
+                            }else{
+                                lancementCommande(tokens);
                             }
-                            /* On exécute la commande donné par l'utilisateur.
-                             * Son nom est dans le premier token (le premier mot tapé)
-                             * ses arguments (éventuels) seront les tokens suivants */
-                            execvp(tokens[0], tokens);
-
-                            /* On ne devrait jamais arriver là */
-
-                            perror("execvp");
-                            fprintf(stderr, "%s: command not found\n", tokens[0]);
-                            exit(1);
                         } else{
                             wait(NULL);
                         }
@@ -122,3 +146,4 @@ int main() {
         }
     }
 }
+

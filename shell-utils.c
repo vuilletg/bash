@@ -71,3 +71,13 @@ char** trouve_tube(char **tokens, const char* tube)
 	/* Rien trouvé */
 	return NULL;
 }
+int test_arriere_plan(char **tokens, const char* ap){
+    while(tokens[0] != NULL) {
+        if(tokens+1 == NULL){
+            if(tokens[0]== ap){
+                return 1;
+            }
+        }
+    }
+    return 0;
+}

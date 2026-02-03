@@ -71,4 +71,6 @@ char* trouve_redirection(char **tokens, const char* redirection);
  */
 char** trouve_tube(char **tokens, const char* tube);
 
+int test_arriere_plan(char **tokens, const char* ap);
+
 #endif
