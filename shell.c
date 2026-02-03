@@ -114,8 +114,9 @@ int main() {
                         fprintf(stderr, "No tokens found: exiting\n");
                     } else {
                         if(strcmp(tokens[0],"exit")==0){ exit(0);}
-
-                        if (fork() == 0) {
+                        int ap = test_arriere_plan(tokens,"&");
+                        pid_t pid = fork();
+                        if (pid == 0) {
                             signal(SIGINT, handlectrc);
                             char **sec;
                             if ((sec = trouve_tube(tokens,"|"))!=NULL){
@@ -138,7 +139,10 @@ int main() {
                                 lancementCommande(tokens);
                             }
                         } else{
-                            wait(NULL);
+                            waitpid(pid,NULL,ap==1 ? WNOHANG : 0);
+                            if(ap==1){
+                                printf("[PID: %d]\n",pid);
+                            }
                         }
                     }
                 }

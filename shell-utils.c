@@ -73,11 +73,14 @@ char** trouve_tube(char **tokens, const char* tube)
 }
 int test_arriere_plan(char **tokens, const char* ap){
     while(tokens[0] != NULL) {
-        if(tokens+1 == NULL){
-            if(tokens[0]== ap){
+        char **next = tokens + 1;
+        if(next[0] == NULL){
+            if(strcmp(tokens[0], ap)==0){
+                tokens[0]=NULL;
                 return 1;
             }
         }
+        tokens++;
     }
     return 0;
 }
