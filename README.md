@@ -16,17 +16,17 @@
 - [x] **Signaux** : Gestion du `Ctrl+C` pour ne pas interrompre le shell lui-même.
 
 ## Bugs connus
-- **commande**: certaines commandes indisponibles: ex cd;
+- **commande**: certaines commandes indisponibles: ex cd
 - **Entrée/Sortie** : Le message `fgets: No child processes` s'affiche lors d'une sortie normale du shell si une commande a été exécutée auparavant.
 - **Signaux** : Le `Ctrl+Z` suspend l'intégralité du shell au lieu de suspendre uniquement le processus en cours d'exécution.
 
 ## Instructions de compilation
 Le code source est conçu pour être compilé sur les machines de l'UFR.
-1. ### methode 1:
+1. ### Méthode 1:
 - dans un terminal executez :```./reload_shell``` (script de compilation du code et execution)
-2. ### methode 2: 
+2. ### Méthode 2: 
 - executez: `make`
 - executez: `./shell`
 
 ### Bonus
-le programe `loop.c` est une boucle infini (peu etre utiliser pour verifier le comportement du shell face à des )
+le programe `loop.c` est une boucle infini (peut être utiliser pour verifier le comportement du shell)
