@@ -23,7 +23,7 @@ void lancementCommande(char** tokens){
     if(red != NULL){
         int fd = open(red, O_RDONLY);
         if (fd == -1) {
-            perror("open");
+            fprintf(stderr, "%s: Impossible d'ouvrir le fichier '%s': %s\n",tokens[0], red, strerror(errno));
             exit(1);
         }
         dup2(fd,0);
@@ -33,8 +33,7 @@ void lancementCommande(char** tokens){
         if(red != NULL){
             int fd = open(red, O_WRONLY | O_CREAT | O_TRUNC, 0644);
             if (fd == -1) {
-                perror("open");
-                fprintf(stderr, "%s: Permission denied\n", red);
+                fprintf(stderr, "%s: Impossible d'ouvrir le fichier '%s': %s\n",tokens[0], red, strerror(errno));
                 exit(1);
             }
             dup2(fd,1);
@@ -47,7 +46,7 @@ void lancementCommande(char** tokens){
     execvp(tokens[0], tokens);
 
     /* On ne devrait jamais arriver là */
-    fprintf(stderr, "%s: command not found\n", tokens[0]);
+    fprintf(stderr, "Commande introuvable: %s\n", tokens[0]);
     exit(1);
 }
 int main() {

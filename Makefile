@@ -9,7 +9,6 @@ PROGS=shell
 all: $(PROGS)
 
 shell: shell.o shell-utils.o
-
 %.o: %.c
 	$(CC) -MMD -MF .$*.d $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
