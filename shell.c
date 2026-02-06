@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <signal.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,14 +11,12 @@
 
 #define INPUT_BUFFER_SIZE 2048
 #define MAX_TOKENS 256
-void handlectrc(int sig ){
-    printf("interuption clavier");
-    exit(0);
+void wait_handler(int sig){
+    waitpid(-1, NULL,WNOHANG);
 }
 /**
- *
- *
- * @param tokens liste de mot correspondant a la commande
+ *  fonction perméttant d'executer une commande avec ou sans redirection
+ * @param tokens le programe à executer avec ses paramètres
  */
 void lancementCommande(char** tokens){
     char* red=trouve_redirection(tokens,"<");
@@ -48,15 +47,15 @@ void lancementCommande(char** tokens){
     execvp(tokens[0], tokens);
 
     /* On ne devrait jamais arriver là */
-
-    perror("execvp");
     fprintf(stderr, "%s: command not found\n", tokens[0]);
     exit(1);
 }
 int main() {
     /* Une variable pour sotcker les caractères tapés au clavier */
     char line[INPUT_BUFFER_SIZE + 1];
-
+    signal(SIGINT,SIG_IGN);
+    signal(SIGTSTP, SIG_IGN);
+    signal(SIGCHLD,wait_handler);
     /* Une variable qui pointera vers les données lues par fgets
      * Sauf problème (erreur, plus de données, ...), elle pointera en
      * fait vers la variable précédente (line) */
@@ -70,8 +69,8 @@ int main() {
     /* variables entières pour compter le nombre de token */
     int nb_tokens;
     while (1) {
-
         printf("commande:");
+        fflush(stdout);
         /* Récupération des données entrées au clavier */
         data = fgets(line, INPUT_BUFFER_SIZE, stdin);
         if (data == NULL) {
@@ -80,6 +79,7 @@ int main() {
                 /* Une erreur: on affiche le message correspondant
                  * et on quitte en indiquant une erreur */
                 perror("fgets");
+                exit(1);
             } else {
                 /* Sinon ça doit être une fin de fichier.
                  * On l'indique et on quitte normalement */
@@ -114,15 +114,18 @@ int main() {
                         fprintf(stderr, "No tokens found: exiting\n");
                     } else {
                         if(strcmp(tokens[0],"exit")==0){ exit(0);}
-                        int ap = test_arriere_plan(tokens,"&");
+                        int ap =0;
+                        ap = test_arriere_plan(tokens,"&");
                         pid_t pid = fork();
                         if (pid == 0) {
-                            signal(SIGINT, handlectrc);
+                            signal(SIGINT, SIG_DFL);
+                            signal(SIGTSTP, SIG_DFL);
                             char **sec;
                             if ((sec = trouve_tube(tokens,"|"))!=NULL){
                                 int fd[2];
                                 if(pipe(fd)==-1){
                                     perror("pipe");
+
                                     exit(1);
                                 }
                                 if(fork()==0){
@@ -139,9 +142,11 @@ int main() {
                                 lancementCommande(tokens);
                             }
                         } else{
-                            waitpid(pid,NULL,ap==1 ? WNOHANG : 0);
-                            if(ap==1){
-                                printf("[PID: %d]\n",pid);
+
+                            if(ap==1) {
+                                printf("[PID: %d]\n", pid);
+                            }else{
+                                waitpid(-1, NULL,  0);
                             }
                         }
                     }

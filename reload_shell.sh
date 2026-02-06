@@ -1,3 +1,3 @@
-clean
+make clean
 make
 ./shell
