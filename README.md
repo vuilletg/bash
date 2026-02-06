@@ -25,7 +25,6 @@ Le code source est conçu pour être compilé sur les machines de l'UFR.
 1. ### methode 1:
 - dans un terminal executez :```./reload_shell``` (script de compilation du code et execution)
 2. ### methode 2: 
-- dans un terminal executez :```cd ./src```
 - executez: `make`
 - executez: `./shell`
 
